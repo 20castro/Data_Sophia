@@ -1,6 +1,6 @@
 import numpy as np
 
-from pick_data import Collect
+from pickData import Collect
 from algorithms.lda import LDA
 from algorithms.random import RandomClassifier
 from algorithms.qda import QDA

@@ -1,7 +1,7 @@
 import numpy as np
 
 from scores import Scores
-from pick_data import Collect
+from pickData import Collect
 
 def test_scores():
     lab = np.array([1, 1, 0, 0])
