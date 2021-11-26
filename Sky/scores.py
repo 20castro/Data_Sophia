@@ -69,7 +69,8 @@ class Scores:
 
     def __repr__(self):
         sep = 61*'_'
-        string = sep + '\n' + \
+        # Version longue
+        vlong = sep + '\n' + \
                 sep + '\n' + \
                 display('F1-score', self.FScore(1)) + \
                 sep + '\n' + \
@@ -91,4 +92,15 @@ class Scores:
                 sep + '\n' + \
                 display('Corrélation de Matthews', self.MCC()) + \
                 sep
-        return string
+        # Version courte
+        vshort = sep + '\n' + \
+                sep + '\n' + \
+                display('F1-score', self.FScore(1)) + \
+                sep + '\n' + \
+                display('Recall', self.recall()) + \
+                sep + '\n' + \
+                display('Precision', self.precision()) + \
+                sep + '\n' + \
+                display('Accuracy', self.accuracy()) + \
+                sep
+        return vshort
