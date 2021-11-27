@@ -6,10 +6,12 @@ from pickData import Collect
 from algorithms.lda import LDA
 from algorithms.random import RandomClassifier
 from algorithms.qda import QDA
-from algorithms.kernels import Kernels
+from algorithms.kernels import GaussianKernel
 from algorithms.logit import Logit
+from algorithms.forest import RandomForest
+from algorithms.knn import KNN
 
-def build(model_name, arg=None):
+def build(model_name):
 
     # Entraînement
 
@@ -22,9 +24,13 @@ def build(model_name, arg=None):
     elif model_name == 'QDA':
         model = QDA()
     elif model_name == 'kernels':
-        model = Kernels(arg) # arg is the expression of the kernel here (thus a function)
+        model = GaussianKernel() # arg is the expression of the kernel here (thus a function)
     elif model_name == 'logit':
         model = Logit()
+    elif model_name == 'KNN':
+        model = KNN()
+    elif model_name == 'forest':
+        model = RandomForest()
     else:
         raise NameError('Model not found')
 

@@ -1,8 +1,6 @@
 import numpy as np
 from math import sqrt
 
-from numpy.lib.function_base import disp
-
 def display(title: str, value, totalLength=61):
     str_value = str(value)
     lt = len(title)

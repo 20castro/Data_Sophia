@@ -4,6 +4,7 @@ from time import perf_counter
 from scores import Scores
 from pickData import Collect
 from algorithms.logit import log_likelihood_derivatives
+from algorithms.kernels import GaussianKernel
 
 def test_scores():
     lab = np.array([1, 1, 0, 0])
@@ -30,9 +31,21 @@ def broadcasting():
     print(d2)
     print(f'Time for one calculus : {1000*(end - start)} ms')
 
+def smallKernelsPredict():
+    data = Collect()
+    trainSet, _ = data.split(.02)
+    kern = GaussianKernel()
+    kern.train(trainSet)
+    smallTest = .9*np.ones((1000, 3)) # 2 pixels
+    start = perf_counter()
+    pred = kern.predict(smallTest)
+    end = perf_counter()
+    print(f'Temps de prédiction : {1000*(end - start)} ms')
+
 def run_tests():
     # test_scores()
     # test_collect()
-    broadcasting()
+    # broadcasting()
+    smallKernelsPredict()
 
 run_tests()

@@ -5,11 +5,10 @@ from pickData import Collect
 from algorithms.lda import LDA
 from algorithms.random import RandomClassifier
 from algorithms.qda import QDA
-from algorithms.kernels import Kernels
+from algorithms.kernels import GaussianKernel
 from algorithms.logit import Logit
-
-def gaussian(u):
-    return np.exp(-.5*u.dot(u))/np.sqrt(2*np.pi)
+from algorithms.forest import RandomForest
+from algorithms.knn import KNN
 
 def modelTest(model, train, test, model_name):
     profiler = cProfile.Profile()
@@ -25,7 +24,7 @@ def modelTest(model, train, test, model_name):
     stats.print_stats(.2)
     #print(f'\nExecution time (prediction on test set): {1000*extime} ms\n')
 
-def main(model_name, arg=None):
+def main(model_name):
     data = Collect()
     train, test = data.split(.05)
     if model_name == 'random':
@@ -35,11 +34,15 @@ def main(model_name, arg=None):
     elif model_name == 'QDA':
         model = QDA()
     elif model_name == 'kernels':
-        model = Kernels(arg) # arg is the expression of the kernel here (thus a function)
+        model = GaussianKernel() # arg is the expression of the kernel here (thus a function)
     elif model_name == 'logit':
         model = Logit()
+    elif model_name == 'KNN':
+        model = KNN()
+    elif model_name == 'forest':
+        model = RandomForest()
     else:
         raise NameError('Model not found')
     modelTest(model, train, test, model_name)
 
-main('logit')
+main('kernels')
