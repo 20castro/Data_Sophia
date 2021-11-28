@@ -1,6 +1,5 @@
 import numpy as np
 from scores import Scores
-import time
 
 def logLike(x, mu, sigma, pi):
     ctr = x - mu
@@ -18,7 +17,10 @@ class QDA:
         self.trained = False
 
     def __repr__(self):
-        return f'Modèle entraîné : {self.trained}'
+        if self.trained:
+            return f'Modèle entraîné : {self.trained}'
+        else:
+            return f'Modèle non entraîné'
 
     def train(self, trainSet):
         mask1 = trainSet[:, 3] == 1
@@ -38,9 +40,6 @@ class QDA:
         return logLike(X, self.mu1, self.sigma1, self.pi1) > logLike(X, self.mu0, self.sigma0, self.pi0)
 
     def performance(self, testSet):
-        start = time.time()
-        pred = self.predict(testSet[:, :3])
-        end = time.time()
-        sc = Scores(testSet[:, 3], pred)
+        sc = Scores(testSet[:, 3], self.predict(testSet[:, :3]))
         print(sc)
-        return end - start
+        return sc

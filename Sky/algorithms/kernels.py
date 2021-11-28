@@ -47,8 +47,8 @@ class GaussianKernel:
         ## Version vectorisée (cas particulier adopté : gaussien mais généralisable facilement)
         ## On décompose le calcul de la norme et on ne prend que les valeurs non constantes (on enlève ||x||^2)
 
-        N1 = np.exp(- X@np.transpose(self.class1) - self.n1).sum(axis=1)
-        N0 = np.exp(- X@np.transpose(self.class0) - self.n0).sum(axis=1)
+        N1 = np.exp(-.5*(X@np.transpose(self.class1) + self.n1)).sum(axis=1)
+        N0 = np.exp(-.5*(X@np.transpose(self.class0) + self.n0)).sum(axis=1)
 
         return N1 > N0 # équivalent à N1/(N0 + N1) > 1/2
 

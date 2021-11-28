@@ -1,6 +1,5 @@
 import numpy as np
 from scores import Scores
-import time
 
 class LDA:
 
@@ -31,9 +30,6 @@ class LDA:
         return X@self.w > self.c
 
     def performance(self, testSet):
-        start = time.time()
-        pred = self.predict(testSet[:, :3])
-        end = time.time()
-        sc = Scores(testSet[:, 3], pred)
+        sc = Scores(testSet[:, 3], self.predict(testSet[:, :3]))
         print(sc)
-        return end - start
+        return sc
