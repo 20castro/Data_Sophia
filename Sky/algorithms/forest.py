@@ -1,13 +1,24 @@
 import numpy as np
+from numpy.core.fromnumeric import size
 from scores import Scores
 
-def trainSubset(trainSet, N) -> np.ndarray:
-    # bootstrap et subsampling
-    pass
+def trainSubset(trainSet, p, n, subsampling=False) -> np.ndarray:
+    # Bootstrap et de subsampling
+    rows = np.random.randint(0, n, size=n)
+    if subsampling:
+        d = int(np.sqrt(p)) # on prend la partie entière de sqrt(p)
+        cols = np.random.randint(0, d, size=d) # avec remise ? Sinon np.random.choice(p, size=d)
+        return trainSet[rows, cols]
+    else:
+        return trainSet[rows]
 
-class BinaryTree:
 
-    def __init__(self, depth, maxDepth): # il faudrait ajouter les features prises
+class BinaryTree: # without subsampling so far
+
+    def __init__(self, depth, maxDepth):
+        
+        # il faudrait ajouter les features prises s'il y a subsampling
+
         self.maxDepth = maxDepth
         self.depth = depth
         self.splittingFeature = None
@@ -107,9 +118,10 @@ class RandomForest:
         self.maxDepth = 6
         self.Ntrees = 200
         self.forest = []
+        self.trained = False
 
     def __repr__(self) -> str:
-        pass
+        return f'Modèle entraîné : {self.trained}'
 
     def __buildTree(self, trainSub):
         tree = BinaryTree(0, self.maxDepth)
@@ -123,9 +135,11 @@ class RandomForest:
         return cnt
 
     def train(self, trainSet):
-        subList = trainSubset(trainSet, self.Ntrees)
-        for trainSub in subList:
+        n, p = trainSet.shape
+        for _ in range(self.Ntrees):
+            trainSub = trainSubset(trainSet, p, n, subsampling=False) # pas de subsampling ici car que 3 features
             self.forest.append(self.__buildTree(trainSub))
+        self.trained = True
 
     def predict(self, X):
         return 2*self.__applyTree(X) > self.Ntrees
