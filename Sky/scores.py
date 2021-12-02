@@ -1,21 +1,24 @@
 import numpy as np
 from math import sqrt
+import sklearn.metrics as metrics
 
-def display(title: str, value, totalLength=61):
+def display(title: str, value, totalLength=61, end='\n'):
     str_value = str(value)
     lt = len(title)
     lv = len(str_value)
     add = totalLength - lt - lv - 3
     if add < 0:
         raise ValueError('Too short total length')
-    return title + ' : ' + add*' ' + str_value + '\n'
+    return title + ' : ' + add*' ' + str_value + end
 
 
 class Scores:
 
-    def __init__(self, labels, predicted_labels):
+    def __init__(self, labels, predicted_labels, model_name, training_rate):
         self.labels = labels.astype('bool')
         self.predicted_labels = predicted_labels.astype('bool')
+        self.name = model_name
+        self.rate = training_rate
 
         self.L = len(labels)
         self.TP = np.count_nonzero(labels[predicted_labels])
@@ -24,6 +27,17 @@ class Scores:
         self.FN = np.count_nonzero(labels[np.logical_not(predicted_labels)])
         self.P = self.TP + self.FN
         self.N = self.TN + self.FP
+
+        self.sklearnF1 = None
+        self.sklearnRecall = None
+        self.sklearnPrec = None
+        self.sklearnAcc = None
+
+    def addSklearnMetrics(self, ypred):
+        self.sklearnF1 = metrics.f1_score(self.labels, ypred)
+        self.sklearnRecall = metrics.recall_score(self.labels, ypred)
+        self.sklearnPrec = metrics.precision_score(self.labels, ypred)
+        self.sklearnAcc = metrics.accuracy_score(self.labels, ypred)
 
     ## Scores
 
@@ -67,38 +81,58 @@ class Scores:
 
     def __repr__(self):
         sep = 61*'_'
+
         # Version longue
-        vlong = sep + '\n' + \
-                sep + '\n' + \
-                display('F1-score', self.FScore(1)) + \
-                sep + '\n' + \
-                display('Kappa', self.kappa()) + \
-                sep + '\n' + \
-                display('Recall', self.recall()) + \
-                sep + '\n' + \
-                display('Specificity', self.specificity()) + \
-                sep + '\n' + \
-                display('False positive rate', self.FalsePositiveRate()) + \
-                sep + '\n' + \
-                display('Precision', self.precision()) + \
-                sep + '\n' + \
-                display('False omission rate', self.FOV()) + \
-                sep + '\n' + \
-                display('Error', self.error()) + \
-                sep + '\n' + \
-                display('Accuracy', self.accuracy()) + \
-                sep + '\n' + \
-                display('Corrélation de Matthews', self.MCC()) + \
-                sep
+
+        # vlong = sep + '\n' + \
+        #         sep + '\n' + \
+        #         display('F1-score', self.FScore(1)) + \
+        #         sep + '\n' + \
+        #         display('Kappa', self.kappa()) + \
+        #         sep + '\n' + \
+        #         display('Recall', self.recall()) + \
+        #         sep + '\n' + \
+        #         display('Specificity', self.specificity()) + \
+        #         sep + '\n' + \
+        #         display('False positive rate', self.FalsePositiveRate()) + \
+        #         sep + '\n' + \
+        #         display('Precision', self.precision()) + \
+        #         sep + '\n' + \
+        #         display('False omission rate', self.FOV()) + \
+        #         sep + '\n' + \
+        #         display('Error', self.error()) + \
+        #         sep + '\n' + \
+        #         display('Accuracy', self.accuracy()) + \
+        #         sep + '\n' + \
+        #         display('Corrélation de Matthews', self.MCC()) + \
+        #         sep
+
         # Version courte
-        vshort = sep + '\n' + \
-                sep + '\n' + \
-                display('F1-score', self.FScore(1)) + \
-                sep + '\n' + \
-                display('Recall', self.recall()) + \
-                sep + '\n' + \
-                display('Precision', self.precision()) + \
-                sep + '\n' + \
-                display('Accuracy', self.accuracy()) + \
-                sep
+
+        if self.sklearnF1 is None or self.sklearnRecall is None or self.sklearnPrec is None or self.sklearnAcc is None:
+            vshort = sep + '\n\n' + \
+                    'Scores for model ' + self.name + 'with training rate' + str(100*self.rate) + ' %\n' + \
+                    sep + '\n' + \
+                    sep + '\n\n' + \
+                    display('F1-score', self.FScore(1)) + \
+                    sep + '\n\n' + \
+                    display('Recall', self.recall()) + \
+                    sep + '\n\n' + \
+                    display('Precision', self.precision()) + \
+                    sep + '\n\n' + \
+                    display('Accuracy', self.accuracy()) + \
+                    sep + '\n'
+        else:
+            vshort = sep + '___' + sep + '\n\n' + \
+                    'Scores for model ' + self.name + ' with training rate ' + str(100*self.rate) + ' %\n' + \
+                    sep + '___' + sep + '\n' + \
+                    sep + '___' + sep + '\n\n' + \
+                    display('F1-score', self.FScore(1), end=' | ') + display('Sklean F1-score', self.sklearnF1) + \
+                    sep + ' | ' + sep + '\n\n' + \
+                    display('Recall', self.recall(), end=' | ') + display('Sklean Recall', self.sklearnRecall) + \
+                    sep + ' | ' + sep + '\n\n' + \
+                    display('Precision', self.precision(), end=' | ') + display('Sklean Precision', self.sklearnPrec) + \
+                    sep + ' | ' + sep + '\n\n' + \
+                    display('Accuracy', self.accuracy(), end=' | ') + display('Sklean Accuracy', self.sklearnAcc) + \
+                    sep + '___' + sep + '\n'
         return vshort

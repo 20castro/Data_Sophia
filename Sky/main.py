@@ -10,23 +10,22 @@ from algorithms.logit import Logit
 from algorithms.forest import RandomForest
 from algorithms.knn import KNN
 
-def modelTest(model, train, test, model_name):
+def modelTest(model, train, test, rate):
     profiler = cProfile.Profile()
     profiler.enable()
     model.train(train)
     #print(model)
-    print(61*'_')
-    print('\nScores for model ' + model_name)
-    model.performance(test)
+    model.performance(test, rate)
     profiler.disable()
     stats = pstats.Stats(profiler)
-    #stats.dump_stats('file.bin')
-    stats.print_stats(.2)
-    #print(f'\nExecution time (prediction on test set): {1000*extime} ms\n')
+    # stats.dump_stats('file.bin')
+    # stats.print_stats(.2)
+    # print(f'\nExecution time (prediction on test set): {1000*extime} ms\n')
 
 def main(model_name):
+    training_rate = .05
     data = Collect()
-    train, test = data.split(.05)
+    train, test = data.split(training_rate)
     if model_name == 'random':
         model = RandomClassifier()
     elif model_name == 'LDA':
@@ -43,6 +42,6 @@ def main(model_name):
         model = RandomForest()
     else:
         raise NameError('Model not found')
-    modelTest(model, train, test, model_name)
+    modelTest(model, train, test, training_rate)
 
-main('kernels')
+main('LDA')
