@@ -28,7 +28,7 @@ class RandomClassifier:
         return np.random.rand(X.shape[0]) < self.rate
 
     def performance(self, testSet, training_rate):
-        sc = Scores(testSet[:, 3], self.predict(testSet[:, :3]), 'dummy', training_rate)
+        sc = Scores(testSet[:, 3], self.predict(testSet[:, :3]), 'DUMMY', training_rate)
         sc.addSklearnMetrics(self.skPredictor.predict(testSet[:, :3]))
         print(sc)
         return sc

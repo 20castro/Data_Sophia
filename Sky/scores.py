@@ -79,6 +79,8 @@ class Scores:
         fact = 2*P0*P1*(tpr - fpr)
         return fact/(fact + err)
 
+    ## Printing
+
     def __repr__(self):
         sep = 61*'_'
         if self.sklearnF1 is None or self.sklearnRecall is None or self.sklearnPrec is None or self.sklearnAcc is None:

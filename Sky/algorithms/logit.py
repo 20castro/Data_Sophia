@@ -1,5 +1,6 @@
 import numpy as np
 from scores import Scores
+from sklearn.linear_model import LogisticRegression
 
 def log_likelihood_derivatives(beta: np.ndarray, u1: np.ndarray, u0: np.ndarray):
 
@@ -27,6 +28,8 @@ class Logit:
         self.beta = np.zeros(4) # intialisation pour l'optimisation
         self.step = None
         self.trained = False
+
+        self.skPredictor = LogisticRegression(penalty='none')
 
     def __repr__(self) -> str:
         if self.trained:
@@ -59,13 +62,16 @@ class Logit:
                 self.beta -= inc
             step += 1
 
+        self.skPredictor.fit(trainSet[:, :3], trainSet[:, 3])
+
         self.trained = True
         self.step = step
 
     def predict(self, X):
         return self.beta[0] + X@self.beta[1:4] > 0
 
-    def performance(self, testSet):
-        sc = Scores(testSet[:, 3], self.predict(testSet[:, :3]))
+    def performance(self, testSet, training_rate):
+        sc = Scores(testSet[:, 3], self.predict(testSet[:, :3]), 'LOGIT', training_rate)
+        sc.addSklearnMetrics(self.skPredictor.predict(testSet[:, :3]))
         print(sc)
         return sc
