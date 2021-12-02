@@ -81,34 +81,6 @@ class Scores:
 
     def __repr__(self):
         sep = 61*'_'
-
-        # Version longue
-
-        # vlong = sep + '\n' + \
-        #         sep + '\n' + \
-        #         display('F1-score', self.FScore(1)) + \
-        #         sep + '\n' + \
-        #         display('Kappa', self.kappa()) + \
-        #         sep + '\n' + \
-        #         display('Recall', self.recall()) + \
-        #         sep + '\n' + \
-        #         display('Specificity', self.specificity()) + \
-        #         sep + '\n' + \
-        #         display('False positive rate', self.FalsePositiveRate()) + \
-        #         sep + '\n' + \
-        #         display('Precision', self.precision()) + \
-        #         sep + '\n' + \
-        #         display('False omission rate', self.FOV()) + \
-        #         sep + '\n' + \
-        #         display('Error', self.error()) + \
-        #         sep + '\n' + \
-        #         display('Accuracy', self.accuracy()) + \
-        #         sep + '\n' + \
-        #         display('Corrélation de Matthews', self.MCC()) + \
-        #         sep
-
-        # Version courte
-
         if self.sklearnF1 is None or self.sklearnRecall is None or self.sklearnPrec is None or self.sklearnAcc is None:
             vshort = sep + '\n\n' + \
                     'Scores for model ' + self.name + 'with training rate' + str(100*self.rate) + ' %\n' + \

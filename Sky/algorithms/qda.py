@@ -1,5 +1,6 @@
 import numpy as np
 from scores import Scores
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
 def logLike(x, mu, sigma, pi):
     ctr = x - mu
@@ -15,6 +16,8 @@ class QDA:
         self.pi1 = 0
         self.pi0 = 0
         self.trained = False
+
+        self.skPredictor = QuadraticDiscriminantAnalysis()
 
     def __repr__(self):
         if self.trained:
@@ -34,12 +37,16 @@ class QDA:
         self.mu0 = np.mean(trainSet[mask0, :3], axis=0)
         self.pi1 = l1/l
         self.pi0 = l0/l
+
+        self.skPredictor.fit(trainSet[:, :3], trainSet[:, 3])
+
         self.trained = True
 
     def predict(self, X):
         return logLike(X, self.mu1, self.sigma1, self.pi1) > logLike(X, self.mu0, self.sigma0, self.pi0)
 
-    def performance(self, testSet):
-        sc = Scores(testSet[:, 3], self.predict(testSet[:, :3]))
+    def performance(self, testSet, training_rate):
+        sc = Scores(testSet[:, 3], self.predict(testSet[:, :3]), 'QDA', training_rate)
+        sc.addSklearnMetrics(self.skPredictor.predict(testSet[:, :3]))
         print(sc)
         return sc
