@@ -1,6 +1,7 @@
 import numpy as np
 from scores import Scores
 from sklearn.linear_model import LogisticRegression
+from time import perf_counter
 
 def log_likelihood_derivatives(beta: np.ndarray, u1: np.ndarray, u0: np.ndarray):
 
@@ -28,8 +29,10 @@ class Logit:
         self.beta = np.zeros(4) # intialisation pour l'optimisation
         self.step = None
         self.trained = False
+        self.time = {}
 
         self.skPredictor = LogisticRegression(penalty='none')
+        self.sktime = {}
 
     def __repr__(self) -> str:
         if self.trained:
@@ -38,6 +41,8 @@ class Logit:
             return f'Modèle non entraîné'
 
     def train(self, trainSet):
+
+        start = perf_counter()
         s = trainSet.shape
         u = np.ones(s)
         u[:, 1:] = trainSet[:, :3] # première colonne de 1, le reste rempli par les pixels
@@ -61,17 +66,34 @@ class Logit:
             else:
                 self.beta -= inc
             step += 1
+        
+        end = perf_counter()
 
         self.skPredictor.fit(trainSet[:, :3], trainSet[:, 3])
 
+        skend = perf_counter()
+
         self.trained = True
         self.step = step
+        self.time['Train'] = end - start
+        self.sktime['Sklearn train'] = skend - end
 
     def predict(self, X):
         return self.beta[0] + X@self.beta[1:4] > 0
 
     def performance(self, testSet, training_rate):
-        sc = Scores(testSet[:, 3], self.predict(testSet[:, :3]), 'LOGIT', training_rate)
-        sc.addSklearnMetrics(self.skPredictor.predict(testSet[:, :3]))
+
+        start = perf_counter()
+        pred = self.predict(testSet[:, :3])
+        end = perf_counter()
+        skpred = self.skPredictor.predict(testSet[:, :3])
+        skend = perf_counter()
+
+        self.time['Fitting'] = end - start
+        self.sktime['Sklearn fitting'] = skend - end
+
+        sc = Scores(testSet[:, 3], pred, 'LOGIT', training_rate)
+        sc.addTimes(self.time, self.sktime)
+        sc.addSklearnMetrics(skpred)
         print(sc)
         return sc

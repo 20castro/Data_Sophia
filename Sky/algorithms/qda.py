@@ -1,6 +1,7 @@
 import numpy as np
 from scores import Scores
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+from time import perf_counter
 
 def logLike(x, mu, sigma, pi):
     ctr = x - mu
@@ -15,9 +16,12 @@ class QDA:
         self.mu0 = 0
         self.pi1 = 0
         self.pi0 = 0
+
+        self.time = {}
         self.trained = False
 
         self.skPredictor = QuadraticDiscriminantAnalysis()
+        self.sktime = {}
 
     def __repr__(self):
         if self.trained:
@@ -26,6 +30,8 @@ class QDA:
             return f'Modèle non entraîné'
 
     def train(self, trainSet):
+
+        start = perf_counter()
         mask1 = trainSet[:, 3] == 1
         l1 = len(mask1)
         mask0 = trainSet[:, 3] == 0
@@ -37,16 +43,32 @@ class QDA:
         self.mu0 = np.mean(trainSet[mask0, :3], axis=0)
         self.pi1 = l1/l
         self.pi0 = l0/l
+        end = perf_counter()
 
         self.skPredictor.fit(trainSet[:, :3], trainSet[:, 3])
 
+        skend = perf_counter()
+        
+        self.time['Train'] = end - start
+        self.sktime['Sklearn train'] = skend - end
         self.trained = True
 
     def predict(self, X):
         return logLike(X, self.mu1, self.sigma1, self.pi1) > logLike(X, self.mu0, self.sigma0, self.pi0)
 
     def performance(self, testSet, training_rate):
-        sc = Scores(testSet[:, 3], self.predict(testSet[:, :3]), 'QDA', training_rate)
-        sc.addSklearnMetrics(self.skPredictor.predict(testSet[:, :3]))
+
+        start = perf_counter()
+        pred = self.predict(testSet[:, :3])
+        end = perf_counter()
+        skpred = self.skPredictor.predict(testSet[:, :3])
+        skend = perf_counter()
+
+        self.time['Fitting'] = end - start
+        self.sktime['Sklearn fitting'] = skend - end
+
+        sc = Scores(testSet[:, 3], pred, 'QDA', training_rate)
+        sc.addTimes(self.time, self.sktime)
+        sc.addSklearnMetrics(skpred)
         print(sc)
         return sc
