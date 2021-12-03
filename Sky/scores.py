@@ -101,11 +101,10 @@ class Scores:
         Prec = self.precision()
         Acc = self.accuracy()
         end = perf_counter()
-        self.time['Scores computation'] = end - start
 
         if self.sklearnF1 is None or self.sklearnRecall is None or self.sklearnPrec is None or self.sklearnAcc is None:
-            vshort = sep + '\n\n' + \
-                    'Scores for model ' + self.name + 'with training rate' + str(100*self.rate) + ' %\n' + \
+            return sep + '\n\n' + \
+                    'Scores for model ' + self.name + 'with training rate ' + str(100*self.rate) + ' %\n' + \
                     sep + '\n' + \
                     sep + '\n\n' + \
                     display('F1-score', F1) + \
@@ -130,18 +129,19 @@ class Scores:
                     display('Accuracy', Acc, end=' | ') + display('Sklean Accuracy', self.sklearnAcc) + \
                     sep + '___' + sep + '\n'
 
-        if self.time is None or self.sktime is None:
-            return vshort
-        else:
-            return vshort + \
-                    sep + '___' + sep + '\n\n' + \
-                    'Timing (s)' + '\n' + \
-                    sep + '___' + sep + '\n' + \
-                    sep + '___' + sep + '\n\n' + \
-                    display('Train', self.time['Train'], end=' | ') + display('Sklearn train', self.sktime['Sklearn train']) + \
-                    sep + ' | ' + sep + '\n\n' + \
-                    display('Fitting', self.time['Fitting'], end=' | ') + display('Sklean fitting', self.sktime['Sklearn fitting']) + \
-                    sep + ' | ' + sep + '\n\n' + \
-                    display('Scores computation', self.time['Scores computation'], end=' | ') + \
-                    display('Sklean scores', self.sktime['Sklearn scores computation']) + \
-                    sep + '___' + sep + '\n'
+            if self.time is None or self.sktime is None:
+                return vshort
+            else:
+                self.time['Scores computation'] = end - start
+                return vshort + \
+                        sep + '___' + sep + '\n\n' + \
+                        'Timing (s)' + '\n' + \
+                        sep + '___' + sep + '\n' + \
+                        sep + '___' + sep + '\n\n' + \
+                        display('Train', self.time['Train'], end=' | ') + display('Sklearn train', self.sktime['Sklearn train']) + \
+                        sep + ' | ' + sep + '\n\n' + \
+                        display('Fitting', self.time['Fitting'], end=' | ') + display('Sklean fitting', self.sktime['Sklearn fitting']) + \
+                        sep + ' | ' + sep + '\n\n' + \
+                        display('Scores computation', self.time['Scores computation'], end=' | ') + \
+                        display('Sklean scores', self.sktime['Sklearn scores computation']) + \
+                        sep + '___' + sep + '\n'
