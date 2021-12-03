@@ -1,5 +1,4 @@
-import numpy as np
-import cProfile, pstats
+# import cProfile, pstats
 
 from pickData import Collect
 from algorithms.lda import LDA
@@ -11,22 +10,21 @@ from algorithms.forest import RandomForest
 from algorithms.knn import KNN
 
 def modelTest(model, train, test, rate):
-    profiler = cProfile.Profile()
-    profiler.enable()
+    # profiler = cProfile.Profile()
+    # profiler.enable()
     model.train(train)
-    #print(model)
+    # print(model)
     model.performance(test, rate)
-    profiler.disable()
-    stats = pstats.Stats(profiler)
+    # profiler.disable()
+    # stats = pstats.Stats(profiler)
     # stats.dump_stats('file.bin')
     # stats.print_stats(.2)
-    # print(f'\nExecution time (prediction on test set): {1000*extime} ms\n')
 
 def main(model_name):
     training_rate = .05
     data = Collect()
     train, test = data.split(training_rate)
-    if model_name == 'random':
+    if model_name == 'dummy':
         model = RandomClassifier()
     elif model_name == 'LDA':
         model = LDA()
