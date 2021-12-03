@@ -22,6 +22,7 @@ class QDA:
 
         self.skPredictor = QuadraticDiscriminantAnalysis()
         self.sktime = {}
+        self.sktrained = False
 
     def __repr__(self):
         if self.trained:
@@ -44,31 +45,48 @@ class QDA:
         self.pi1 = l1/l
         self.pi0 = l0/l
         end = perf_counter()
-
-        self.skPredictor.fit(trainSet[:, :3], trainSet[:, 3])
-
-        skend = perf_counter()
         
         self.time['Train'] = end - start
-        self.sktime['Sklearn train'] = skend - end
         self.trained = True
+
+    def sktrain(self, trainSet):
+        start = perf_counter()
+        self.skPredictor.fit(trainSet[:, :3], trainSet[:, 3])
+        end = perf_counter()
+        self.sktime['Sklearn train'] = end - start
+        self.sktrained = True
 
     def predict(self, X):
         return logLike(X, self.mu1, self.sigma1, self.pi1) > logLike(X, self.mu0, self.sigma0, self.pi0)
 
+    def skfit(self, testSet):
+        return self.skPredictor.predict(testSet[:, :3])
+
     def performance(self, testSet, training_rate):
+
+        if not self.trained:
+            raise "Untrained"
 
         start = perf_counter()
         pred = self.predict(testSet[:, :3])
         end = perf_counter()
-        skpred = self.skPredictor.predict(testSet[:, :3])
-        skend = perf_counter()
+    
+        if self.sktrained:
 
-        self.time['Fitting'] = end - start
-        self.sktime['Sklearn fitting'] = skend - end
+            skpred = self.skfit(testSet)
+            skend = perf_counter()
 
-        sc = Scores(testSet[:, 3], pred, 'QDA', training_rate)
-        sc.addTimes(self.time, self.sktime)
-        sc.addSklearnMetrics(skpred)
+            self.time['Fitting'] = end - start
+            self.sktime['Sklearn fitting'] = skend - end
+
+            sc = Scores(testSet[:, 3], pred, 'QDA', training_rate)
+            sc.addTimes(self.time, self.sktime)
+            sc.addSklearnMetrics(skpred)
+            
+        else:
+
+            self.time['Fitting'] = end - start
+            sc = Scores(testSet[:, 3], pred, 'QDA', training_rate)
+
         print(sc)
         return sc

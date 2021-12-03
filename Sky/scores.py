@@ -104,7 +104,7 @@ class Scores:
 
         if self.sklearnF1 is None or self.sklearnRecall is None or self.sklearnPrec is None or self.sklearnAcc is None:
             return sep + '\n\n' + \
-                    'Scores for model ' + self.name + 'with training rate ' + str(100*self.rate) + ' %\n' + \
+                    'Scores for model ' + self.name + ' with training rate ' + str(100*self.rate) + ' %\n' + \
                     sep + '\n' + \
                     sep + '\n\n' + \
                     display('F1-score', F1) + \
