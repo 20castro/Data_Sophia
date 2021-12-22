@@ -3,15 +3,19 @@ from typing import Optional
 
 from subtree import LearningNode, impurete
 
-class RootCV(LearningNode):
+class Root(LearningNode):
 
     def __init__(self):
         super().__init__(0, 1)
 
     def __pruning(self):
+        alpha = [0]
+        R = [self.subR]
         n = 2
-        while self.nodeMinInSubtree > 1:
-            self.__round(n, f'{self.nodeMinInSubtree:b}'[1:])
+        while not 1 in self.nodeMinInSubtree:
+            self.__round(n, [f'{nodeMin:b}'[1:] for nodeMin in self.nodeMinInSubtree])
+            alpha.append(self.gMinInSubtree)
+            R.append(self.subR)
             n += 1
 
     def fit(self, X, y, variableType: Optional[np.ndarray]):

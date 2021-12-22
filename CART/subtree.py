@@ -1,4 +1,5 @@
 from node import Node
+from typing import List
 
 import numpy as np
 
@@ -34,7 +35,7 @@ class LearningNode(Node):
         # Pre pruning
         self.g = None
         self.gMinInSubtree = None
-        self.nodeMinInSubtree = None
+        self.nodeMinInSubtree = []
 
         # Cross validation
         self.cutAtRound = 0
@@ -62,23 +63,50 @@ class LearningNode(Node):
         self.value = self.__tamp['value']
         self.categorical = self.__tamp['categorical']
 
+    def findClass(self, y):
+        m = y.mean()
+        if m > .5:
+            self.maxClass = 1
+            self.trainingError = 1. - m
+        elif m == .5:
+            self.maxClass = np.random.randint(0, 2)
+            self.trainingError = .5
+        else:
+            self.maxClass = 0
+            self.trainingError = m
+
     def actualizeInner(self):
         # we fill the function that is to minimize
         R = self.left.subR + self.right.subR
         cardT = 2 + self.left.cardT + self.right.cardT
         self.g = (self.trainingError - R)/(cardT - 1)
-        complete = False
-        if (not self.left.g is None) and self.left.g < self.g:
+        if (not self.left.g is None) and (not self.right.g is None):
+
+            if self.left.gMinInSubtree < self.right.gMinInSubtree and self.right.gMinInSubtree < self.g:
+                self.gMinInSubtree = self.left.gMinInSubtree
+                self.nodeMinInSubtree = self.left.nodeMinInSubtree
+            elif self.left.gMinInSubtree == self.right.gMinInSubtree < self.g:
+                self.gMinInSubtree = self.right.gMinInSubtree
+                self.nodeMinInSubtree = self.left.nodeMinInSubtree + self.right.nodeMinInSubtree
+            elif self.right.gMinInSubtree < self.left.gMinInSubtree and self.left.gMinInSubtree < self.g:
+                self.gMinInSubtree = self.right.gMinInSubtree
+                self.nodeMinInSubtree = self.right.nodeMinInSubtree
+            else:
+                self.gMinInSubtree = self.g
+                self.nodeMinInSubtree = [self.id]
+
+        elif (not self.left.g is None) and self.left.gMinInSubtree < self.g:
             self.gMinInSubtree = self.left.gMinInSubtree
             self.nodeMinInSubtree = self.left.nodeMinInSubtree
-            complete = True
-        if (not self.right.g is None) and self.right.g < self.g:
+
+        elif (not self.right.g is None) and self.right.gMinInSubtree < self.g:
             self.gMinInSubtree = self.right.gMinInSubtree
             self.nodeMinInSubtree = self.right.nodeMinInSubtree
-            complete = True
-        if not complete:
+
+        else:
             self.gMinInSubtree = self.g
-            self.nodeMinInSubtree = self.id
+            self.nodeMinInSubtree = [self.id]
+        
         self.cardT = cardT
         self.subR = self.subproportion*R
 
@@ -100,18 +128,6 @@ class LearningNode(Node):
             self.actualizeInner()
 
     # Training
-
-    def __findClass(self, y):
-        m = y.mean()
-        if m > .5:
-            self.maxClass = 1
-            self.trainingError = 1. - m
-        elif m == .5:
-            self.maxClass = np.random.randint(0, 2)
-            self.trainingError = .5
-        else:
-            self.maxClass = 0
-            self.trainingError = m
 
     def __split(self, X, y, i: int):
 
@@ -185,7 +201,7 @@ class LearningNode(Node):
         self.__tamp = {}
 
     def grow(self, X, y):
-        self.__findClass(y)
+        self.findClass(y)
         if len(y) > self.stopCard and self.trainingError > 0 and len(self.__tamp['yl']) > 0 and len(self.__tamp['yr']) > 0:
             p = X.shape[1]
             for i in range(p):
@@ -200,12 +216,14 @@ class LearningNode(Node):
 
     # Pruning
 
-    def __round(self, nRound: int, path: str):
-        if path == '':
+    def __round(self, nRound: int, path: List[str]):
+        if '' in path:
             self.actualizeNewLeaf(nRound)
-        elif path[0] == 0:
-            self.left.__round(nRound, path[1:])
-            self.actualizeInner()
         else:
-            self.right.__round(nRound, path[1:])
+            leftPaths = [p[1:] for p in path if p[0] == 0]
+            rightPaths = [p[1:] for p in path if p[0] == 1]
+            if len(leftPaths) > 0:
+                self.left.__round(nRound, leftPaths)
+            if len(rightPaths) > 0:
+                self.right.__round(nRound, rightPaths)
             self.actualizeInner()
