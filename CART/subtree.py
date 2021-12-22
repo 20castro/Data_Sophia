@@ -22,13 +22,22 @@ class LearningNode(Node):
         self.__Delta = -1
         self.__tamp = {}
 
-        # Post training features
+        # Node post training features
         self.subproportion = None
         self.maxClass = None
         self.trainingError = None
 
+        # Subtree post training features
+        self.cardT = 0
+        self.subR = None
+
         # Pre pruning
         self.g = None
+        self.gMinInSubtree = None
+        self.nodeMinInSubtree = None
+
+        # Cross validation
+        self.cutAtRound = 0
 
     # Tree structure
 
@@ -53,15 +62,42 @@ class LearningNode(Node):
         self.value = self.__tamp['value']
         self.categorical = self.__tamp['categorical']
 
-    def checkUse(self, R, cardT):
+    def actualizeInner(self):
+        # we fill the function that is to minimize
+        R = self.left.subR + self.right.subR
+        cardT = 2 + self.left.cardT + self.right.cardT
+        self.g = (self.trainingError - R)/(cardT - 1)
+        complete = False
+        if (not self.left.g is None) and self.left.g < self.g:
+            self.gMinInSubtree = self.left.gMinInSubtree
+            self.nodeMinInSubtree = self.left.nodeMinInSubtree
+            complete = True
+        if (not self.right.g is None) and self.right.g < self.g:
+            self.gMinInSubtree = self.right.gMinInSubtree
+            self.nodeMinInSubtree = self.right.nodeMinInSubtree
+            complete = True
+        if not complete:
+            self.gMinInSubtree = self.g
+            self.nodeMinInSubtree = self.id
+        self.cardT = cardT
+        self.subR = self.subproportion*R
+
+    def actualizeNewLeaf(self, nRound):
+        self.cutAtRound = nRound
+        self.g = None
+        self.gMinInSubtree = None
+        self.nodeMinInSubtree = None
+        self.cardT = 0
+        self.subR = self.subproportion*self.trainingError
+
+    def checkUse(self):
+        # never called when self is a leaf
         if self.left.isLeaf and self.right.isLeaf and self.left.maxClass == self.right.maxClass:
             # removing the useless inner nodes after growing Tmax
             self.cut()
-            return 0, self.subproportion*self.trainingError
+            self.actualizeNewLeaf(1)
         else:
-            # we fill the function that is to minimize
-            self.g = (self.trainingError - R)/(cardT - 1)
-            return cardT, self.subproportion*R
+            self.actualizeInner()
 
     # Training
 
@@ -143,10 +179,10 @@ class LearningNode(Node):
         self.apply()
         self.appendLeft()
         self.appendRight()
-        leftChildren, RLeft = self.left.grow(self.__tamp['Xl'], self.__tamp['yl'])
-        rightChildren, RRight = self.right.grow(self.__tamp['Xr'], self.__tamp['yr'])
+        self.left.grow(self.__tamp['Xl'], self.__tamp['yl'])
+        self.right.grow(self.__tamp['Xr'], self.__tamp['yr'])
+        self.checkUse()
         self.__tamp = {}
-        return self.checkUse(RLeft + RRight, 2 + leftChildren + rightChildren)
 
     def grow(self, X, y):
         self.__findClass(y)
@@ -154,9 +190,22 @@ class LearningNode(Node):
             p = X.shape[1]
             for i in range(p):
                 self.__split(X, y, i)
-            return self.__flow()
+            self.__flow()
         else:
             # if the node is pure or if it satisfies the stop condition (N <= 5) or if one of the training data subset is empty
             # then the node is leaf
             self.isLeaf = True
-            return 0, self.subproportion*self.trainingError
+            self.cardT = 0
+            self.R = self.subproportion*self.trainingError
+
+    # Pruning
+
+    def __round(self, nRound: int, path: str):
+        if path == '':
+            self.actualizeNewLeaf(nRound)
+        elif path[0] == 0:
+            self.left.__round(nRound, path[1:])
+            self.actualizeInner()
+        else:
+            self.right.__round(nRound, path[1:])
+            self.actualizeInner()

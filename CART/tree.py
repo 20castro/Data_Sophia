@@ -3,10 +3,16 @@ from typing import Optional
 
 from subtree import LearningNode, impurete
 
-class Root(LearningNode):
+class RootCV(LearningNode):
 
     def __init__(self):
         super().__init__(0, 1)
+
+    def __pruning(self):
+        n = 2
+        while self.nodeMinInSubtree > 1:
+            self.__round(n, f'{self.nodeMinInSubtree:b}'[1:])
+            n += 1
 
     def fit(self, X, y, variableType: Optional[np.ndarray]):
 
@@ -28,6 +34,7 @@ class Root(LearningNode):
         else:
             self.__variableType = np.zeros(X.shape[1], dtype=np.bool)
         self.grow(X, y)
+        self.__pruning()
 
     def predict(self, X):
         return self.__call__(X)
